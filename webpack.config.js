@@ -102,7 +102,19 @@ module.exports = function makeWebpackConfig() {
       },
 
       // copy those assets to output
-      {test: /\.(png|jpe?g|gif|svg|woff|woff2|ttf|eot|ico)$/, loader: 'file?name=[path][name].[ext]?[hash]'},
+      {
+          test: /\.(jpg|jpeg|gif|png)$/,
+          //exclude: /node_modules/,
+          //   loader: 'url-loader?limit=1024&name=img/[name].[ext]?[hash]'
+          loader: 'file?name=img/[name].[ext]'
+      },
+      {
+          test: /\.(woff|woff2|eot|ttf|svg|ico)$/,
+          //exclude: /node_modules/,
+          //   loader: 'url-loader?limit=1024&name=fonts/[name].[ext]?[hash]'
+          loader: 'file?name=fonts/[name].[ext]'
+      },
+      //{test: /\.(png|jpe?g|gif|svg|woff|woff2|ttf|eot|ico)$/, loader: 'file?name=[path][name].[ext]?[hash]'},
 
       // Support for *.json files.
       {test: /\.json$/, loader: 'json'},
@@ -124,7 +136,8 @@ module.exports = function makeWebpackConfig() {
       {
         test: /\.scss$/,
         exclude: root('src', 'app'),
-        loader: isTest ? 'null' : ExtractTextPlugin.extract('style', 'css?sourceMap!postcss!sass')
+        loader: isTest ? 'null' : ExtractTextPlugin.extract('css?sourceMap!postcss!resolve-url!sass?sourceMap')
+        // loader: isTest ? 'null' : ExtractTextPlugin.extract('style', 'css?sourceMap!postcss!sass')
       },
       // all css required in src/app files will be merged in js files
       {test: /\.scss$/, exclude: root('src', 'style'), loader: 'raw!postcss!sass'},
@@ -184,7 +197,7 @@ module.exports = function makeWebpackConfig() {
       // Inject script and link tags into html files
       // Reference: https://github.com/ampedandwired/html-webpack-plugin
       new HtmlWebpackPlugin({
-        template: './src/public/index.html',
+        template: './src/www/index.html',
         inject: 'body',
         chunksSortMode: function compare(a, b) {
           // common always first
@@ -209,7 +222,10 @@ module.exports = function makeWebpackConfig() {
       // Extract css files
       // Reference: https://github.com/webpack/extract-text-webpack-plugin
       // Disabled when in test mode or not in build mode
-      new ExtractTextPlugin('css/[name].[hash].css', {disable: !isProd})
+      new ExtractTextPlugin('css/[name].[hash].css', {
+          disable: isTest,
+          allChunks: false
+        })
     );
   }
 
@@ -235,7 +251,7 @@ module.exports = function makeWebpackConfig() {
       // Copy assets from the public folder
       // Reference: https://github.com/kevlened/copy-webpack-plugin
       new CopyWebpackPlugin([{
-        from: root('src/public')
+        from: root('src/www')
       }])
     );
   }
@@ -245,20 +261,34 @@ module.exports = function makeWebpackConfig() {
    * Reference: https://github.com/postcss/autoprefixer-core
    * Add vendor prefixes to your css
    */
-  config.postcss = [
-    autoprefixer({
-      browsers: ['last 2 version']
-    })
-  ];
+    config.postcss = [
+        autoprefixer({
+            browsers: [
+                'last 2 versions',
+                'iOS >= 7',
+                'Android >= 4',
+                'Explorer >= 10',
+                'ExplorerMobile >= 11'
+            ],
+            cascade: false
+        })
+    ];
 
-  /**
-   * Sass
-   * Reference: https://github.com/jtangelder/sass-loader
-   * Transforms .scss files to .css
-   */
-  config.sassLoader = {
-    //includePaths: [path.resolve(__dirname, "node_modules/foundation-sites/scss")]
-  };
+    /**
+     * Sass
+     * Reference: https://github.com/jtangelder/sass-loader
+     * Transforms .scss files to .css
+     */
+    config.sassLoader = {
+        includePaths: [
+            //path.resolve(__dirname, "node_modules/foundation-sites/scss")
+            rootNode('ionic-angular'),
+            rootNode('ionic-angular', 'themes'),
+            //rootNode('ionic-angular', 'fonts'),
+            rootNode('ionicons/dist/scss')
+
+        ]
+    };
 
   /**
    * Apply the tslint loader as pre/postLoader
@@ -275,7 +305,7 @@ module.exports = function makeWebpackConfig() {
    * Reference: http://webpack.github.io/docs/webpack-dev-server.html
    */
   config.devServer = {
-    contentBase: './src/public',
+    contentBase: './src/www',
     historyApiFallback: true,
     stats: 'minimal' // none (or false), errors-only, minimal, normal (or true) and verbose
   };

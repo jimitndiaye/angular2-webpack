@@ -2,7 +2,9 @@ import {Component} from 'angular2/core';
 import {RouteConfig, ROUTER_DIRECTIVES} from 'angular2/router';
 import {FORM_PROVIDERS} from 'angular2/common';
 
-import '../style/app.scss';
+//import '../style/app.scss';
+import '../style/app.ios.scss';
+import '../style/app.md.scss';
 
 import {Api} from './services/api/api';
 import {Home} from './components/home/home';
@@ -13,7 +15,7 @@ import {About} from "./components/about/about";
  * Top Level Component
  */
 @Component({
-  selector: 'app', // <app></app>
+  selector: 'ion-app', // <app></app>
   providers: [...FORM_PROVIDERS, Api],
   directives: [...ROUTER_DIRECTIVES],
   pipes: [],
